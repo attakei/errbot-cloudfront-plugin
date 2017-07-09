@@ -1,3 +1,4 @@
+import datetime
 import textwrap
 from errbot import BotPlugin, botcmd, arg_botcmd
 import boto3
@@ -70,7 +71,10 @@ class Cloudfront(BotPlugin):
         result = client.create_invalidation(
             DistributionId=distribution_id,
             InvalidationBatch={
-                'CallerReference': distribution_id + '-invalidate',
+                'CallerReference': '{}-{}'.format(
+                    distribution_id,
+                    datetime.datetime.now().strftime('%Y%m%d%H%M%S'),
+                ),
                 'Paths': {
                     'Quantity': 1,
                     'Items': ['/*'],
