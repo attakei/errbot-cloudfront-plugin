@@ -71,7 +71,7 @@ class Cloudfront(BotPlugin):
             InvalidationBatch={
                 'CallerReference': distribution_id + '-invalidate',
                 'Paths': {
-                    'Quantity':1,
+                    'Quantity': 1,
                     'Items': ['/*'],
                 }
             })
@@ -83,7 +83,6 @@ class Cloudfront(BotPlugin):
                 distribution_id, distribution_id, invalidate_id
             )
         return textwrap.dedent(message)
-
 
     @arg_botcmd('invalidation_id', type=str)
     @arg_botcmd('distribution_id', type=str)
