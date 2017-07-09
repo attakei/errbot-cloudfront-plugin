@@ -1,5 +1,6 @@
 import textwrap
 from errbot import BotPlugin, botcmd, arg_botcmd, webhook
+import boto3
 
 
 class Cloudfront(BotPlugin):
@@ -13,6 +14,12 @@ class Cloudfront(BotPlugin):
             And set your configurations.
             """
         return textwrap.dedent(message)
+
+    def _init_client(self):
+        return boto3.client('cloudfront',
+            aws_access_key_id=self.config['access_id'],
+            aws_secret_access_key=self.config['secret_key'],
+        )
 
     def get_configuration_template(self):
         """
@@ -37,4 +44,15 @@ class Cloudfront(BotPlugin):
                 or not self.config.get('access_id', None) \
                 or not self.config.get('secret_key', None):
             return self._not_configured()
-        return "Example"
+        client = self._init_client()
+        result = client.list_distributions()
+        if 'DistributionList' not in result:
+            return "Error"
+        quantity = result['DistributionList']['Quantity']
+        yield "Display {} items of distribution".format(quantity)
+        dists = result['DistributionList']['Items']
+        yield "\n".join([
+            "* {}: {}".format(dist['Id'] , dist['Origins']['Items'][0]['DomainName'])
+            for dist in dists
+        ])
+        return
