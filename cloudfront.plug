@@ -1,0 +1,12 @@
+[Core]
+name = cloudfront
+module = cloudfront
+
+[Documentation]
+description = Control CloudFront
+
+[Python]
+version = 3
+
+[Errbot]
+
