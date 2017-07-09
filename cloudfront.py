@@ -1,5 +1,5 @@
 import textwrap
-from errbot import BotPlugin, botcmd
+from errbot import BotPlugin, botcmd, arg_botcmd
 import boto3
 
 
@@ -58,3 +58,41 @@ class Cloudfront(BotPlugin):
             for dist in result['Items']
         ])
         return "{}\n\n{}".format(header, dists)
+
+    @arg_botcmd('distribution_id', type=str)
+    def cloudfront_invalidate(self, message, distribution_id):
+        if not self.config \
+                or not self.config.get('access_id', None) \
+                or not self.config.get('secret_key', None):
+            return self._not_configured()
+        client = self._init_client()
+        result = client.create_invalidation(
+            DistributionId=distribution_id,
+            InvalidationBatch={
+                'CallerReference': distribution_id + '-invalidate',
+                'Paths': {
+                    'Quantity':1,
+                    'Items': ['/*'],
+                }
+            })
+        invalidate_id = result['Invalidation']['Id']
+        message = """
+            Start invalidation for {}
+            Call `!cloudfront status {} {}` to check invaliation status
+            """.format(
+                distribution_id, distribution_id, invalidate_id
+            )
+        return textwrap.dedent(message)
+
+
+    @arg_botcmd('invalidation_id', type=str)
+    @arg_botcmd('distribution_id', type=str)
+    def cloudfront_status(self, message, distribution_id, invalidation_id):
+        if not self.config \
+                or not self.config.get('access_id', None) \
+                or not self.config.get('secret_key', None):
+            return self._not_configured()
+        client = self._init_client()
+        result = client.get_invalidation(
+            DistributionId=distribution_id, Id=invalidation_id)
+        return "Status is '{}'".format(result['Invalidation']['Status'])
