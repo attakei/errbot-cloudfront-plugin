@@ -61,6 +61,7 @@ class Cloudfront(BotPlugin):
 
     @arg_botcmd('distribution_id', type=str)
     def cloudfront_invalidate(self, message, distribution_id):
+        """Invalidate all caches from specified distribution."""
         if not self.config \
                 or not self.config.get('access_id', None) \
                 or not self.config.get('secret_key', None):
@@ -87,6 +88,7 @@ class Cloudfront(BotPlugin):
     @arg_botcmd('invalidation_id', type=str)
     @arg_botcmd('distribution_id', type=str)
     def cloudfront_status(self, message, distribution_id, invalidation_id):
+        """Check status of specified invalidation."""
         if not self.config \
                 or not self.config.get('access_id', None) \
                 or not self.config.get('secret_key', None):
