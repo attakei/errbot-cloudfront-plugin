@@ -84,7 +84,11 @@ class Cloudfront(BotPlugin):
                 }
             })
         invalidation_id = result['Invalidation']['Id']
-        self.start_poller(AUTO_CHECK_INTERVAL, self._motnitor_invalidation, (distribution_id, invalidation_id, str(message.frm)))
+        self.start_poller(
+            AUTO_CHECK_INTERVAL,
+            self._motnitor_invalidation,
+            (distribution_id, invalidation_id, str(message.frm))
+        )
         message = """
             Start invalidation for {}
             Call `!cloudfront status {} {}` to check invaliation status
@@ -124,4 +128,7 @@ class Cloudfront(BotPlugin):
         )
         send_to = self.build_identifier(send_id)
         self.send(send_to, message)
-        self.stop_poller(self._motnitor_invalidation, (distibution, invaliation, msg_from))
+        self.stop_poller(
+            self._motnitor_invalidation,
+            (distibution, invaliation, msg_from)
+        )
