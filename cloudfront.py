@@ -107,6 +107,7 @@ class Cloudfront(BotPlugin):
         return "Status is '{}'".format(result['Invalidation']['Status'])
 
     def _motnitor_invalidation(self, distibution, invaliation, msg_from):
+        """Check invalidation status(polling)."""
         client = self._init_client()
         result = client.get_invalidation(
             DistributionId=distibution, Id=invaliation)
