@@ -4,6 +4,9 @@ from errbot import BotPlugin, botcmd, arg_botcmd
 import boto3
 
 
+AUTO_CHECK_INTERVAL = 60 * 1
+
+
 class Cloudfront(BotPlugin):
     """
     Control CloudFront
@@ -81,6 +84,7 @@ class Cloudfront(BotPlugin):
                 }
             })
         invalidate_id = result['Invalidation']['Id']
+        self.start_poller(AUTO_CHECK_INTERVAL, self._motnitor_invalidation, (distribution_id, invalidate_id, str(message.frm)))
         message = """
             Start invalidation for {}
             Call `!cloudfront status {} {}` to check invaliation status
@@ -101,3 +105,22 @@ class Cloudfront(BotPlugin):
         result = client.get_invalidation(
             DistributionId=distribution_id, Id=invalidation_id)
         return "Status is '{}'".format(result['Invalidation']['Status'])
+
+    def _motnitor_invalidation(self, distibution, invaliation, msg_from):
+        client = self._init_client()
+        result = client.get_invalidation(
+            DistributionId=distibution, Id=invaliation)
+        status = result['Invalidation']['Status']
+        if status != 'Completed':
+            return
+        if '/' in msg_from:
+            send_id, memtion = msg_from.split('/')
+            memtion = '@' + memtion
+        else:
+            send_id = memtion = msg_from
+        message = "{} Invalidation<{}> is finished!".format(
+            memtion, invaliation
+        )
+        send_to = self.build_identifier(send_id)
+        self.send(send_to, message)
+        self.stop_poller(self._motnitor_invalidation, (distibution, invaliation, msg_from))
