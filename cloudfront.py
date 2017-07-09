@@ -8,12 +8,12 @@ class Cloudfront(BotPlugin):
     Control CloudFront
     """
     def _not_configured(self):
-        message = """\
+        message = """
             This plugin is until not configured.
             Please call `!plugin config cloudfront` to read format,
             And set your configurations.
             """
-        return repr(textwrap.dedent(message))
+        return textwrap.dedent(message)
 
     def _init_client(self):
         """Return CloudFront client by boto3.
