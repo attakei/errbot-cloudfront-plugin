@@ -14,10 +14,10 @@ class Cloudfront(BotPlugin):
     def _not_configured(self):
         message = """
             This plugin is until not configured.
-            Please call `!plugin config cloudfront` to read format,
+            Please call `{}plugin config cloudfront` to read format,
             And set your configurations.
             """
-        return textwrap.dedent(message)
+        return textwrap.dedent(message).format(self.bot_config.BOT_PREFIX)
 
     def _init_client(self):
         """Return CloudFront client by boto3.
@@ -91,9 +91,12 @@ class Cloudfront(BotPlugin):
         )
         message = """
             Start invalidation for {}
-            Call `!cloudfront status {} {}` to check invaliation status
+            Call `{}cloudfront status {} {}` to check invaliation status
             """.format(
-                distribution_id, distribution_id, invalidation_id
+                distribution_id,
+                self.bot_config.BOT_PREFIX,
+                distribution_id,
+                invalidation_id,
             )
         return textwrap.dedent(message)
 
