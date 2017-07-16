@@ -4,6 +4,6 @@ matrix:
     - python: '3.6'
       env: TOXENV=py36
 
-install: pip install tox
-
-script: tox
+script:
+  - pip install errbot
+  - py.test
