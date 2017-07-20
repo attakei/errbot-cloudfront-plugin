@@ -40,6 +40,12 @@ class Cloudfront(BotPlugin):
         }
         return config
 
+    @arg_botcmd('origin', type=str)
+    def cloudfront_create(self, message, origin):
+        """Create new distribution."""
+        return 'It is a stub!'
+
+
     @botcmd(split_args_with=None)
     def cloudfront_list(self, message, args):
         """Display knwon CloudFront edges."""

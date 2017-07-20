@@ -14,3 +14,8 @@ def test_unconfigured_bot_prefix(testbot):
     testbot.push_message('!!cloudfront list')
     assert '!!plugin config cloudfront' \
         in testbot.pop_message()
+
+
+def test_create_is_stub(testbot):
+    testbot.push_message('!cloudfront create example.com')
+    assert 'It is a stub!' == testbot.pop_message()
