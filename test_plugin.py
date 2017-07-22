@@ -5,6 +5,12 @@ pytest_plugins = ["errbot.backends.test"]
 extra_plugin_dir = '.'
 
 
+def inject_dummy_conf(bot):
+    bot.push_message('!plugin config cloudfront '\
+        '{"access_id":"1","secret_key":"1"}')
+    bot.pop_message()
+
+
 def test_unconfigured(testbot):
     testbot.push_message('!cloudfront list')
     assert 'This plugin is until not configured' \
@@ -25,8 +31,7 @@ def test_create_is_stub(testbot):
             'Distribution': {
                 'Id': 'ABCDEFG'
             }}
-        testbot.push_message('!plugin config cloudfront {"access_id":"1","secret_key":"1"}')
-        testbot.pop_message()
+        inject_dummy_conf(testbot)
         testbot.push_message('!cloudfront create example.com')
         message = testbot.pop_message()
         assert 'Start creating new distribution' in message
