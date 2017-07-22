@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 pytest_plugins = ["errbot.backends.test"]
 
 extra_plugin_dir = '.'
@@ -17,5 +19,15 @@ def test_unconfigured_bot_prefix(testbot):
 
 
 def test_create_is_stub(testbot):
-    testbot.push_message('!cloudfront create example.com')
-    assert 'It is a stub!' == testbot.pop_message()
+    with patch('boto3.client') as Client:
+        client = Client.return_value
+        client.create_distribution.return_value = {
+            'Distribution': {
+                'Id': 'ABCDEFG'
+            }}
+        testbot.push_message('!plugin config cloudfront {"access_id":"1","secret_key":"1"}')
+        testbot.pop_message()
+        testbot.push_message('!cloudfront create example.com')
+        message = testbot.pop_message()
+        assert 'Start creating new distribution' in message
+        assert '!cloudfront status ABCDEFG' in message

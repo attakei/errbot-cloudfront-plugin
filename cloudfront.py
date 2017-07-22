@@ -43,8 +43,46 @@ class Cloudfront(BotPlugin):
     @arg_botcmd('origin', type=str)
     def cloudfront_create(self, message, origin):
         """Create new distribution."""
-        return 'It is a stub!'
-
+        client = self._init_client()
+        result = client.create_distribution(DistributionConfig={
+            'CallerReference': 'new_distribution-{}'.format(
+                datetime.datetime.now().strftime('%Y%m%d%H%M%S'),
+            ),
+            'Origins': {
+                'Quantity': 1,
+                'Items': [
+                    {
+                        'Id': '',  # TODO: Implimentations
+                        'OriginName': '',  # TODO: Implimentations
+                    }
+                ]
+            },
+            'DefaultCacheBehavior': {  # TODO: Implimentations
+                'TargetOriginId': '', 
+                'ForwardedValues': {
+                    'QueryString': True,
+                    'Cookies': {'Forward': True}
+                },
+                'TrustedSigners': {
+                    'Enabled': False,
+                    'Quantity': 0,
+                },
+                'ViewerProtocolPolicy': 'allow-all',
+                'MinTTL': 0,
+            },
+            'Comment': '',
+            'Enabled': True,
+        })
+        distribution_id = result['Distribution']['Id']
+        message = """
+            Start creating new distribution {}
+            Call `{}cloudfront status {}` to check invaliation status
+            """.format(
+                origin,
+                self.bot_config.BOT_PREFIX,
+                distribution_id,
+            )
+        return textwrap.dedent(message)
 
     @botcmd(split_args_with=None)
     def cloudfront_list(self, message, args):
