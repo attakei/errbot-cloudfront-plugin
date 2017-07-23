@@ -59,8 +59,14 @@ def test_status_distibution(testbot):
             'Distribution': {
                 'Id': 'ABCDEFG',
                 'Status': 'Deployed',
+                'DistributionConfig': {
+                    'Comment': 'Test',
+                },
+                'DomainName': 'example.com'
             }}
         inject_dummy_conf(testbot)
         testbot.push_message('!cloudfront info ABCDEF')
         message = testbot.pop_message()
-        assert 'Status is' in message
+        assert 'ABCDEF' in message
+        assert 'Test' in message
+        assert 'example.com' in message
