@@ -24,7 +24,7 @@ def test_unconfigured_bot_prefix(testbot):
         in testbot.pop_message()
 
 
-def test_create_is_stub(testbot):
+def test_create_message(testbot):
     with patch('boto3.client') as Client:
         client = Client.return_value
         client.create_distribution.return_value = {
