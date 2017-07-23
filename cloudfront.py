@@ -79,6 +79,11 @@ class Cloudfront(BotPlugin):
             'Enabled': True,
         })
         distribution_id = result['Distribution']['Id']
+        self.start_poller(
+            AUTO_CHECK_INTERVAL,
+            self._motnitor_distribution,
+            (distribution_id, str(message.frm))
+        )
         message = """
             Start creating new distribution {}
             Call `{}cloudfront info {}` to check invaliation status
@@ -99,6 +104,28 @@ class Cloudfront(BotPlugin):
         client = self._init_client()
         result = client.get_distribution(Id=distribution_id)
         return "Status is '{}'".format(result['Distribution']['Status'])
+
+    def _motnitor_distribution(self, distibution_id, msg_from):
+        """Check invalidation status(polling)."""
+        client = self._init_client()
+        result = client.get_distribution(Id=distibution_id)
+        status = result['Distribution']['Status']
+        if status != 'Deployed':
+            return
+        if '/' in msg_from:
+            send_id, memtion = msg_from.split('/')
+            memtion = '@' + memtion
+        else:
+            send_id = memtion = msg_from
+        message = "{} Distribution<{}> is ready!".format(
+            memtion, distibution_id
+        )
+        send_to = self.build_identifier(send_id)
+        self.send(send_to, message)
+        self.stop_poller(
+            self._motnitor_distribution,
+            (distibution_id, msg_from)
+        )
 
     @botcmd(split_args_with=None)
     def cloudfront_list(self, message, args):
