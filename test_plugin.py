@@ -35,7 +35,7 @@ def test_create_message(testbot):
         testbot.push_message('!cloudfront create example.com')
         message = testbot.pop_message()
         assert 'Start creating new distribution' in message
-        assert '!cloudfront status ABCDEFG' in message
+        assert '!cloudfront info ABCDEFG' in message
 
 
 def test_status_invalidation(testbot):
@@ -48,5 +48,19 @@ def test_status_invalidation(testbot):
             }}
         inject_dummy_conf(testbot)
         testbot.push_message('!cloudfront status ABCDEF GHIJKL')
+        message = testbot.pop_message()
+        assert 'Status is' in message
+
+
+def test_status_distibution(testbot):
+    with patch('boto3.client') as Client:
+        client = Client.return_value
+        client.get_distribution.return_value = {
+            'Distribution': {
+                'Id': 'ABCDEFG',
+                'Status': 'Deployed',
+            }}
+        inject_dummy_conf(testbot)
+        testbot.push_message('!cloudfront info ABCDEF')
         message = testbot.pop_message()
         assert 'Status is' in message

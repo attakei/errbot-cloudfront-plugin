@@ -76,13 +76,24 @@ class Cloudfront(BotPlugin):
         distribution_id = result['Distribution']['Id']
         message = """
             Start creating new distribution {}
-            Call `{}cloudfront status {}` to check invaliation status
+            Call `{}cloudfront info {}` to check invaliation status
             """.format(
                 origin,
                 self.bot_config.BOT_PREFIX,
                 distribution_id,
             )
         return textwrap.dedent(message)
+
+    @arg_botcmd('distribution_id', type=str)
+    def cloudfront_info(self, message, distribution_id):
+        """Check status of specified invalidation."""
+        if not self.config \
+                or not self.config.get('access_id', None) \
+                or not self.config.get('secret_key', None):
+            return self._not_configured()
+        client = self._init_client()
+        result = client.get_invalidation(DistributionId=distribution_id)
+        return "Status is '{}'".format(result['Invalidation']['Status'])
 
     @botcmd(split_args_with=None)
     def cloudfront_list(self, message, args):
