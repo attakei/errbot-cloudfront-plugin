@@ -40,6 +40,111 @@ class Cloudfront(BotPlugin):
         }
         return config
 
+    @arg_botcmd('origin', type=str)
+    def cloudfront_create(self, message, origin):
+        """Create new distribution."""
+        client = self._init_client()
+        result = client.create_distribution(DistributionConfig={
+            'CallerReference': 'new_distribution-{}'.format(
+                datetime.datetime.now().strftime('%Y%m%d%H%M%S'),
+            ),
+            'Origins': {
+                'Quantity': 1,
+                'Items': [
+                    {
+                        'Id': 'Default',
+                        'DomainName': origin,
+                        'CustomOriginConfig': {
+                            'HTTPPort': 80,
+                            'HTTPSPort': 443,
+                            'OriginProtocolPolicy': 'match-viewer'
+                        }
+                    }
+                ]
+            },
+            'DefaultCacheBehavior': {
+                'TargetOriginId': 'Default', 
+                'ForwardedValues': {
+                    'QueryString': False,
+                    'Cookies': {'Forward': 'all'}
+                },
+                'TrustedSigners': {
+                    'Enabled': False,
+                    'Quantity': 0,
+                },
+                'ViewerProtocolPolicy': 'allow-all',
+                'MinTTL': 0,
+            },
+            'Comment': origin,
+            'Enabled': True,
+        })
+        distribution_id = result['Distribution']['Id']
+        self.start_poller(
+            AUTO_CHECK_INTERVAL,
+            self._motnitor_distribution,
+            (distribution_id, str(message.frm))
+        )
+        message = """
+            Start creating new distribution {}
+            Call `{}cloudfront info {}` to check invaliation status
+            """.format(
+                origin,
+                self.bot_config.BOT_PREFIX,
+                distribution_id,
+            )
+        return textwrap.dedent(message)
+
+    @arg_botcmd('distribution_id', type=str)
+    def cloudfront_info(self, message, distribution_id):
+        """Check status of specified invalidation."""
+        if not self.config \
+                or not self.config.get('access_id', None) \
+                or not self.config.get('secret_key', None):
+            return self._not_configured()
+        client = self._init_client()
+        result = client.get_distribution(Id=distribution_id)
+        distribution = result['Distribution']
+        message = """
+        Distribution: {}
+        - comment: {}
+        - status: {}
+        - endpoint: {}
+        """.format(
+            distribution['Id'],
+            distribution['DistributionConfig']['Comment'],
+            distribution['Status'],
+            distribution['DomainName'],
+        )
+        return textwrap.dedent(message)
+
+    def _motnitor_distribution(self, distibution_id, msg_from):
+        """Check invalidation status(polling)."""
+        client = self._init_client()
+        result = client.get_distribution(Id=distibution_id)
+        distribution = result['Distribution']
+        status = distribution['Status']
+        if status != 'Deployed':
+            return
+        if '/' in msg_from:
+            send_id, memtion = msg_from.split('/')
+            memtion = '@' + memtion
+        else:
+            send_id = memtion = msg_from
+        message = """
+        {} Distribution<{}> is ready!
+        - endpoint: {}
+        """.format(
+            memtion,
+            distribution['Id'],
+            distribution['DomainName'],
+        )
+        send_to = self.build_identifier(send_id)
+        self.send(send_to, textwrap.dedent(message))
+        self.stop_poller(
+            self._motnitor_distribution,
+            (distibution_id, msg_from)
+        )
+
     @botcmd(split_args_with=None)
     def cloudfront_list(self, message, args):
         """Display knwon CloudFront edges."""
