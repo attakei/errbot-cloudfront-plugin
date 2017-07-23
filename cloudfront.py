@@ -52,16 +52,21 @@ class Cloudfront(BotPlugin):
                 'Quantity': 1,
                 'Items': [
                     {
-                        'Id': '',  # TODO: Implimentations
-                        'OriginName': '',  # TODO: Implimentations
+                        'Id': 'Default',
+                        'DomainName': origin,
+                        'CustomOriginConfig': {
+                            'HTTPPort': 80,
+                            'HTTPSPort': 443,
+                            'OriginProtocolPolicy': 'match-viewer'
+                        }
                     }
                 ]
             },
-            'DefaultCacheBehavior': {  # TODO: Implimentations
-                'TargetOriginId': '', 
+            'DefaultCacheBehavior': {
+                'TargetOriginId': 'Default', 
                 'ForwardedValues': {
-                    'QueryString': True,
-                    'Cookies': {'Forward': True}
+                    'QueryString': False,
+                    'Cookies': {'Forward': 'all'}
                 },
                 'TrustedSigners': {
                     'Enabled': False,
@@ -70,7 +75,7 @@ class Cloudfront(BotPlugin):
                 'ViewerProtocolPolicy': 'allow-all',
                 'MinTTL': 0,
             },
-            'Comment': '',
+            'Comment': origin,
             'Enabled': True,
         })
         distribution_id = result['Distribution']['Id']
@@ -92,8 +97,8 @@ class Cloudfront(BotPlugin):
                 or not self.config.get('secret_key', None):
             return self._not_configured()
         client = self._init_client()
-        result = client.get_invalidation(DistributionId=distribution_id)
-        return "Status is '{}'".format(result['Invalidation']['Status'])
+        result = client.get_distribution(Id=distribution_id)
+        return "Status is '{}'".format(result['Distribution']['Status'])
 
     @botcmd(split_args_with=None)
     def cloudfront_list(self, message, args):
