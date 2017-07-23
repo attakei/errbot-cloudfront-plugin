@@ -103,13 +103,26 @@ class Cloudfront(BotPlugin):
             return self._not_configured()
         client = self._init_client()
         result = client.get_distribution(Id=distribution_id)
-        return "Status is '{}'".format(result['Distribution']['Status'])
+        distribution = result['Distribution']
+        message = """
+        Distribution: {}
+        - comment: {}
+        - status: {}
+        - endpoint: {}
+        """.format(
+            distribution['Id'],
+            distribution['DistributionConfig']['Comment'],
+            distribution['Status'],
+            distribution['DomainName'],
+        )
+        return textwrap.dedent(message)
 
     def _motnitor_distribution(self, distibution_id, msg_from):
         """Check invalidation status(polling)."""
         client = self._init_client()
         result = client.get_distribution(Id=distibution_id)
-        status = result['Distribution']['Status']
+        distribution = result['Distribution']
+        status = distribution['Status']
         if status != 'Deployed':
             return
         if '/' in msg_from:
@@ -117,11 +130,16 @@ class Cloudfront(BotPlugin):
             memtion = '@' + memtion
         else:
             send_id = memtion = msg_from
-        message = "{} Distribution<{}> is ready!".format(
-            memtion, distibution_id
+        message = """
+        {} Distribution<{}> is ready!
+        - endpoint: {}
+        """.format(
+            memtion,
+            distribution['Id'],
+            distribution['DomainName'],
         )
         send_to = self.build_identifier(send_id)
-        self.send(send_to, message)
+        self.send(send_to, textwrap.dedent(message))
         self.stop_poller(
             self._motnitor_distribution,
             (distibution_id, msg_from)
