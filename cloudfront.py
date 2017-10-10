@@ -80,9 +80,9 @@ class Cloudfront(BotPlugin):
         })
         distribution_id = result['Distribution']['Id']
         self.start_poller(
-            AUTO_CHECK_INTERVAL,
-            self._motnitor_distribution,
-            (distribution_id, str(message.frm))
+            interval=AUTO_CHECK_INTERVAL,
+            method=self._motnitor_distribution,
+            args=(distribution_id, str(message.frm))
         )
         message = """
             Start creating new distribution {}
@@ -190,9 +190,9 @@ class Cloudfront(BotPlugin):
             })
         invalidation_id = result['Invalidation']['Id']
         self.start_poller(
-            AUTO_CHECK_INTERVAL,
-            self._motnitor_invalidation,
-            (distribution_id, invalidation_id, str(message.frm))
+            interval=AUTO_CHECK_INTERVAL,
+            method=self._motnitor_invalidation,
+            args=(distribution_id, invalidation_id, str(message.frm))
         )
         message = """
             Start invalidation for {}
