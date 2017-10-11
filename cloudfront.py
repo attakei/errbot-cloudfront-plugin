@@ -237,6 +237,6 @@ class Cloudfront(BotPlugin):
         send_to = self.build_identifier(send_id)
         self.send(send_to, message)
         self.stop_poller(
-            self._motnitor_invalidation,
-            (distibution, invaliation, msg_from)
+            method=self._motnitor_invalidation,
+            args=(distibution, invaliation, msg_from)
         )
