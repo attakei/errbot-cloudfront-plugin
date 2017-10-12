@@ -2,6 +2,11 @@ import datetime
 import textwrap
 from errbot import BotPlugin, botcmd, arg_botcmd
 import boto3
+# TODO: There are workaround import for https://github.com/errbotio/errbot/issues/1119
+import re
+from errbot.version import VERSION as ERRBOT_VERSION
+from errbot.botplugin import BotPluginBase
+
 
 
 AUTO_CHECK_INTERVAL = 60 * 1
@@ -240,3 +245,12 @@ class Cloudfront(BotPlugin):
             method=self._motnitor_invalidation,
             args=(distibution, invaliation, msg_from)
         )
+
+    # TODO: There are workaround import for https://github.com/errbotio/errbot/issues/1119
+    def stop_poller(self, method, args=None, kwargs=None):
+        if re.match('^5\.1\.[0-9]+$', ERRBOT_VERSION):
+            BotPluginBase.stop_poller(
+                self, method, args=args, kwargs=kwargs)
+        else:
+            super().stop_poller(
+                method, args=args, kwargs=kwargs)
