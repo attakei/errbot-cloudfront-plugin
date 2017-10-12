@@ -16,15 +16,6 @@ class Cloudfront(BotPlugin):
     """
     Control CloudFront
     """
-    
-    def stop_poller(self, method, args=None, kwargs=None):
-        if ERRBOT_VERSION == '5.1.2':
-            BotPluginBase.stop_poller(
-                self, method, args=args, kwargs=kwargs)
-        else:
-            super().stop_poller(
-                method, args=args, kwargs=kwargs)
-
     def _not_configured(self):
         message = """
             This plugin is until not configured.
